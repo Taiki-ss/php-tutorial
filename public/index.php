@@ -9,8 +9,12 @@ $app = AppFactory::create();
 $app->get(
 	'/',
 	function ( Request $request, Response $response ) {
-		$response = $response->withHeader( 'Content-type', 'text/plain' );
-		$response->getBody()->write( 'Hello World' );
+		$response = $response->withHeader( 'Content-type', 'application/json' );
+		$response->getBody()->write(
+			json_encode(
+				array( 'message' => 'Hello World' ),
+			)
+		);
 		return $response;
 	}
 );
