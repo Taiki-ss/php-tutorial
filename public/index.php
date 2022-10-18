@@ -1,20 +1,34 @@
 <?php
+use DI\Bridge\Slim\Bridge;
+use DI\ContainerBuilder;
 use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Factory\AppFactory;
+use Twig\Environment as Twig;
+use Twig\Loader\FilesystemLoader;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$app = AppFactory::create();
+$builder = new ContainerBuilder();
+$builder->addDefinitions(
+	array(
+		Twig::class => function() {
+			$loader = new FilesystemLoader( __DIR__ . '/../resource/templates' );
+			return new Twig(
+				$loader,
+				array(
+					'cache' => __DIR__ . '/../var/chache/twig',
+				)
+			);
+		},
+	)
+);
+
+$app = Bridge::create( $builder->build() );
 $app->get(
 	'/',
-	function ( Request $request, Response $response ) {
-		$response = $response->withHeader( 'Content-type', 'application/json' );
-		$response->getBody()->write(
-			json_encode(
-				array( 'message' => 'Hello World' ),
-			)
-		);
+	function ( Response $response, Twig $twig ) {
+		$response = $response->withHeader( 'Content-type', 'text/html' );
+		$body     = $twig->render( 'index.html.twig' );
+		$response->getBody()->write( $body );
 		return $response;
 	}
 );
